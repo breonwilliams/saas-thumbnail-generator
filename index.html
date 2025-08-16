@@ -336,20 +336,6 @@ No coding required</textarea>
                 </div>
 
                 <button onclick="downloadImage()">Download Thumbnail</button>
-                
-                <div class="control-group" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                    <label style="color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Debug Options</label>
-                    <div style="margin-top: 10px;">
-                        <input type="checkbox" id="debugMode">
-                        <label for="debugMode" style="display: inline; margin-left: 5px; font-weight: normal;">Show padding & guides</label>
-                    </div>
-                    <div id="debugInfo" style="margin-top: 10px; padding: 10px; background: #f9fafb; border-radius: 6px; font-size: 12px; color: #6b7280; display: none;">
-                        <div>Padding: <span id="debugPadding">-</span>px</div>
-                        <div>Heading: <span id="debugHeadingSize">-</span>px</div>
-                        <div>Body: <span id="debugBodySize">-</span>px</div>
-                        <div>Scale: <span id="debugScale">100</span>%</div>
-                    </div>
-                </div>
             </div>
 
             <div class="preview-section">
@@ -403,7 +389,6 @@ No coding required</textarea>
             const showHeading = document.getElementById('showHeading').checked;
             const showFeatures = document.getElementById('showFeatures').checked;
             const showChecks = document.getElementById('showChecks').checked;
-            const debugMode = document.getElementById('debugMode').checked;
             const uppercaseHeading = document.getElementById('uppercaseHeading').checked;
             const imageBorderRadius = parseInt(document.getElementById('imageBorderRadius').value) || 8;
             
@@ -411,9 +396,6 @@ No coding required</textarea>
             if (uppercaseHeading) {
                 heading = heading.toUpperCase();
             }
-            
-            // Update debug info visibility
-            document.getElementById('debugInfo').style.display = debugMode ? 'block' : 'none';
 
             // Update preview info
             document.getElementById('previewInfo').textContent = `${width} × ${height}`;
@@ -428,11 +410,6 @@ No coding required</textarea>
             const smallestDimension = Math.min(width, height);
             // Use 10% of smallest dimension, with minimum of 25px
             const padding = Math.max(25, Math.round(smallestDimension * 0.1));
-            
-            // Update debug info
-            if (debugMode) {
-                document.getElementById('debugPadding').textContent = padding;
-            }
             
             // 50/50 column split when image is present with proper boundaries
             const totalWidth = width - (padding * 2); // Total usable width
@@ -541,13 +518,6 @@ No coding required</textarea>
             const lineHeightHeading = 1.1;
             const lineHeightText = 1.35;
             
-            // Update debug info
-            if (debugMode) {
-                document.getElementById('debugHeadingSize').textContent = headingSize;
-                document.getElementById('debugBodySize').textContent = textSize;
-                document.getElementById('debugScale').textContent = Math.round(bestScale * 100);
-            }
-            
             // Recalculate content with final sizes for rendering
             ctx.textBaseline = 'top';
             let headingLines = [];
@@ -581,62 +551,6 @@ No coding required</textarea>
                     totalHeight += wrappedLines.length * textSize * lineHeightText;
                 });
             }
-            
-            // Draw debug guides first (so they appear behind content)
-            if (debugMode) {
-                ctx.save();
-                ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-                
-                // Top padding line
-                ctx.beginPath();
-                ctx.moveTo(0, padding);
-                ctx.lineTo(width, padding);
-                ctx.stroke();
-                
-                // Bottom padding line
-                ctx.beginPath();
-                ctx.moveTo(0, height - padding);
-                ctx.lineTo(width, height - padding);
-                ctx.stroke();
-                
-                // Left padding line
-                ctx.beginPath();
-                ctx.moveTo(padding, 0);
-                ctx.lineTo(padding, height);
-                ctx.stroke();
-                
-                // Right padding line
-                ctx.beginPath();
-                ctx.moveTo(width - padding, 0);
-                ctx.lineTo(width - padding, height);
-                ctx.stroke();
-                
-                // Column divider if image present
-                if (uploadedImage) {
-                    ctx.strokeStyle = 'rgba(0, 0, 255, 0.3)';
-                    ctx.beginPath();
-                    ctx.moveTo(padding + leftColumnWidth, padding);
-                    ctx.lineTo(padding + leftColumnWidth, height - padding);
-                    ctx.stroke();
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(padding + leftColumnWidth + columnGap, padding);
-                    ctx.lineTo(padding + leftColumnWidth + columnGap, height - padding);
-                    ctx.stroke();
-                }
-                
-                // Draw padding values
-                ctx.restore();
-                ctx.save();
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
-                ctx.font = '10px monospace';
-                ctx.fillText(`${padding}px`, 5, padding - 5);
-                ctx.fillText(`${padding}px`, padding - 30, 15);
-                ctx.restore();
-            }
-            
             // Center content vertically within padded area
             const availableHeight = height - (padding * 2);
             let yPosition = padding + Math.max(0, (availableHeight - totalHeight) / 2);
@@ -825,7 +739,7 @@ No coding required</textarea>
         }, false);
 
         // Add event listeners to all inputs
-        ['canvasWidth', 'canvasHeight', 'heading', 'description', 'features', 'bgColor', 'textColor', 'accentColor', 'showHeading', 'showFeatures', 'showChecks', 'debugMode', 'uppercaseHeading', 'imageBorderRadius'].forEach(id => {
+        ['canvasWidth', 'canvasHeight', 'heading', 'description', 'features', 'bgColor', 'textColor', 'accentColor', 'showHeading', 'showFeatures', 'showChecks', 'uppercaseHeading', 'imageBorderRadius'].forEach(id => {
             const element = document.getElementById(id);
             if (element) {
                 element.addEventListener(element.type === 'checkbox' ? 'change' : 'input', drawCanvas);
