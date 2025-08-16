@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS Thumbnail Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #111827;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .controls {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-btn {
+            padding: 10px 14px;
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            color: #374151;
+        }
+
+        .preset-btn:hover {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        }
+
+        .preset-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+
+        .size-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-upload label {
+            display: block;
+            padding: 10px;
+            background: #f9fafb;
+            border: 2px dashed #d1d5db;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 0;
+        }
+
+        .file-upload label:hover {
+            background: #f3f4f6;
+            border-color: #3b82f6;
+        }
+
+        .file-upload.has-file label {
+            background: #dbeafe;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        .file-upload.drag-over label {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            border-width: 3px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #059669;
+        }
+
+        .preview-section {
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .preview-info {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            position: relative;
+        }
+
+        canvas {
+            max-width: 100%;
+            height: auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            background: white;
+        }
+
+        .color-inputs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SaaS Thumbnail Generator</h1>
+        
+        <div class="main-grid">
+            <div class="controls">
+                <div class="control-group">
+                    <label for="platformPreset">Platform Preset</label>
+                    <select id="platformPreset" onchange="setPreset(this.value)">
+                        <option value="custom">Custom Size</option>
+                        <option value="youtube">YouTube Thumbnail (1280×720)</option>
+                        <option value="chrome-small">Chrome Web Store - Small (440×280)</option>
+                        <option value="chrome-large">Chrome Web Store - Large (920×680)</option>
+                        <option value="chrome-promo">Chrome Web Store - Promo (1400×560)</option>
+                        <option value="product-hunt">Product Hunt Gallery (1270×760)</option>
+                        <option value="twitter">Twitter Card (1200×630)</option>
+                        <option value="facebook">Facebook Share (1200×630)</option>
+                        <option value="linkedin">LinkedIn Post (1200×627)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label>Canvas Size</label>
+                    <div class="size-inputs">
+                        <input type="number" id="canvasWidth" placeholder="Width" value="1280">
+                        <input type="number" id="canvasHeight" placeholder="Height" value="800">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="heading">Heading</label>
+                    <input type="text" id="heading" placeholder="Your Product Name" value="Amazing SaaS Tool">
+                    <div style="margin-top: 8px;">
+                        <input type="checkbox" id="showHeading" checked>
+                        <label for="showHeading" style="display: inline; margin-left: 5px; font-weight: normal;">Show heading</label>
+                        <input type="checkbox" id="uppercaseHeading" style="margin-left: 15px;">
+                        <label for="uppercaseHeading" style="display: inline; margin-left: 5px; font-weight: normal;">Uppercase</label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" placeholder="Brief description of your product">Streamline your workflow with our powerful, easy-to-use platform designed for modern teams.</textarea>
+                </div>
+
+                <div class="control-group">
+                    <label for="features">Features (one per line)</label>
+                    <div style="margin-bottom: 8px;">
+                        <input type="checkbox" id="showFeatures" checked>
+                        <label for="showFeatures" style="display: inline; margin-left: 5px; font-weight: normal;">Show features</label>
+                        <input type="checkbox" id="showChecks" checked style="margin-left: 15px;">
+                        <label for="showChecks" style="display: inline; margin-left: 5px; font-weight: normal;">Show checkmarks</label>
+                    </div>
+                    <textarea id="features" placeholder="Feature 1&#10;Feature 2&#10;Feature 3">Easy setup in minutes
+24/7 customer support
+No coding required</textarea>
+                </div>
+
+                <div class="control-group">
+                    <label>Colors</label>
+                    <div class="color-inputs">
+                        <div>
+                            <label style="font-size: 12px; margin-bottom: 4px;">Background</label>
+                            <input type="text" id="bgColor" value="#ffffff" placeholder="#ffffff" pattern="^#[0-9A-Fa-f]{6}$">
+                        </div>
+                        <div>
+                            <label style="font-size: 12px; margin-bottom: 4px;">Text</label>
+                            <input type="text" id="textColor" value="#111827" placeholder="#111827" pattern="^#[0-9A-Fa-f]{6}$">
+                        </div>
+                    </div>
+                    <div class="color-inputs" style="margin-top: 10px;">
+                        <div>
+                            <label style="font-size: 12px; margin-bottom: 4px;">Accent</label>
+                            <input type="text" id="accentColor" value="#3b82f6" placeholder="#3b82f6" pattern="^#[0-9A-Fa-f]{6}$">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="file-upload" id="fileUploadContainer">
+                        <input type="file" id="imageUpload" accept="image/*">
+                        <label for="imageUpload" id="uploadLabel">
+                            Click to upload or drag & drop image
+                        </label>
+                    </div>
+                    <div id="imageControls" style="display: none; margin-top: 10px;">
+                        <label for="imageBorderRadius" style="font-size: 12px;">Image Border Radius</label>
+                        <input type="range" id="imageBorderRadius" min="0" max="50" value="8" style="width: 100%; margin-top: 5px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; color: #6b7280; margin-top: 2px;">
+                            <span>0px</span>
+                            <span id="borderRadiusValue">8px</span>
+                            <span>50px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="downloadImage()">Download Thumbnail</button>
+                
+                <div class="control-group" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                    <label style="color: #6b7280; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Debug Options</label>
+                    <div style="margin-top: 10px;">
+                        <input type="checkbox" id="debugMode">
+                        <label for="debugMode" style="display: inline; margin-left: 5px; font-weight: normal;">Show padding & guides</label>
+                    </div>
+                    <div id="debugInfo" style="margin-top: 10px; padding: 10px; background: #f9fafb; border-radius: 6px; font-size: 12px; color: #6b7280; display: none;">
+                        <div>Padding: <span id="debugPadding">-</span>px</div>
+                        <div>Heading: <span id="debugHeadingSize">-</span>px</div>
+                        <div>Body: <span id="debugBodySize">-</span>px</div>
+                        <div>Scale: <span id="debugScale">100</span>%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <div class="preview-header">
+                    <h2>Preview</h2>
+                    <div class="preview-info" id="previewInfo">1280 × 800</div>
+                </div>
+                <div class="canvas-container">
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let uploadedImage = null;
+        let currentPreset = '';
+
+        const presets = {
+            'youtube': { width: 1280, height: 720, name: 'YouTube Thumbnail' },
+            'chrome-small': { width: 440, height: 280, name: 'Chrome Web Store - Small' },
+            'chrome-large': { width: 920, height: 680, name: 'Chrome Web Store - Large' },
+            'chrome-promo': { width: 1400, height: 560, name: 'Chrome Web Store - Promo' },
+            'product-hunt': { width: 1270, height: 760, name: 'Product Hunt Gallery' },
+            'twitter': { width: 1200, height: 630, name: 'Twitter Card' },
+            'facebook': { width: 1200, height: 630, name: 'Facebook Share' },
+            'linkedin': { width: 1200, height: 627, name: 'LinkedIn Post' },
+            'custom': { width: 1280, height: 800, name: 'Custom Size' }
+        };
+
+        function setPreset(preset) {
+            currentPreset = preset;
+            const size = presets[preset];
+            document.getElementById('canvasWidth').value = size.width;
+            document.getElementById('canvasHeight').value = size.height;
+            
+            drawCanvas();
+        }
+
+        function drawCanvas() {
+            const width = parseInt(document.getElementById('canvasWidth').value) || 1280;
+            const height = parseInt(document.getElementById('canvasHeight').value) || 800;
+            let heading = document.getElementById('heading').value;
+            const description = document.getElementById('description').value;
+            const features = document.getElementById('features').value;
+            const bgColor = document.getElementById('bgColor').value;
+            const textColor = document.getElementById('textColor').value;
+            const accentColor = document.getElementById('accentColor').value;
+            const showHeading = document.getElementById('showHeading').checked;
+            const showFeatures = document.getElementById('showFeatures').checked;
+            const showChecks = document.getElementById('showChecks').checked;
+            const debugMode = document.getElementById('debugMode').checked;
+            const uppercaseHeading = document.getElementById('uppercaseHeading').checked;
+            const imageBorderRadius = parseInt(document.getElementById('imageBorderRadius').value) || 8;
+            
+            // Apply uppercase if enabled
+            if (uppercaseHeading) {
+                heading = heading.toUpperCase();
+            }
+            
+            // Update debug info visibility
+            document.getElementById('debugInfo').style.display = debugMode ? 'block' : 'none';
+
+            // Update preview info
+            document.getElementById('previewInfo').textContent = `${width} × ${height}`;
+
+            // Set canvas size
+            canvas.width = width;
+            canvas.height = height;
+
+            // Golden ratio padding - ensures proper spacing
+            const goldenRatio = 1.618;
+            // Calculate padding based on canvas size
+            const smallestDimension = Math.min(width, height);
+            // Use 10% of smallest dimension, with minimum of 25px
+            const padding = Math.max(25, Math.round(smallestDimension * 0.1));
+            
+            // Update debug info
+            if (debugMode) {
+                document.getElementById('debugPadding').textContent = padding;
+            }
+            
+            // 50/50 column split when image is present with proper boundaries
+            const totalWidth = width - (padding * 2); // Total usable width
+            const columnGap = padding; // Gap between columns
+            const leftColumnWidth = uploadedImage 
+                ? (totalWidth - columnGap) / 2 
+                : totalWidth;
+            const rightColumnWidth = uploadedImage 
+                ? (totalWidth - columnGap) / 2 
+                : 0;
+
+            // Clear and set background
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Draw subtle accent overlay if no image
+            if (!uploadedImage) {
+                const gradient = ctx.createLinearGradient(0, 0, width, height);
+                gradient.addColorStop(0, accentColor + '10');
+                gradient.addColorStop(1, accentColor + '05');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, width, height);
+            }
+
+            // Use Inter font
+            const fontFamily = '"Inter", -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, sans-serif';
+            
+            // Smart font scaling - binary search for maximum size
+            let minScale = 0.5;
+            let maxScale = 2.0;
+            let bestScale = 1.0;
+            let attempts = 0;
+            
+            // Binary search for the best font size
+            while (attempts < 15 && (maxScale - minScale) > 0.05) {
+                const testScale = (minScale + maxScale) / 2;
+                
+                // Calculate font sizes with golden ratio
+                const canvasArea = width * height;
+                const referenceArea = 1280 * 800;
+                const areaRatio = Math.sqrt(canvasArea / referenceArea);
+                
+                // Base size proportional to canvas - more conservative for proper fit
+                const targetBaseSize = Math.min(width / 50, height / 35);
+                const baseFontSize = Math.max(10, targetBaseSize * areaRatio) * testScale;
+                
+                // Better size hierarchy - 2.5x difference
+                const headingSize = Math.round(baseFontSize * 2.5); // Much larger heading
+                const textSize = Math.round(baseFontSize);
+                const lineHeightHeading = 1.1; // Tighter for impact
+                const lineHeightText = 1.35; // Tighter for better blocks
+
+                // Measure content height - must fit within padding boundaries
+                let measureHeight = 0; // Don't include padding in measurement
+
+                // Set baseline for measurements
+                ctx.textBaseline = 'top';
+                
+                // Measure heading - using bold (reduced from 900)
+                if (showHeading && heading) {
+                    ctx.font = `700 ${headingSize}px ${fontFamily}`;
+                    const headingLines = wrapText(ctx, heading, leftColumnWidth);
+                    measureHeight += headingLines.length * headingSize * lineHeightHeading;
+                    measureHeight += padding * 0.25; // Tighter spacing
+                }
+
+                // Measure description - medium weight
+                ctx.font = `500 ${textSize}px ${fontFamily}`;
+                const descLines = wrapText(ctx, description, leftColumnWidth);
+                measureHeight += descLines.length * textSize * lineHeightText;
+                
+                // Only add spacing if we have features to show
+                if (showFeatures && features) {
+                    measureHeight += padding * 0.25; // Tighter spacing
+
+                    // Measure features with proper text wrapping
+                    const featureLines = features.split('\n').filter(f => f.trim());
+                    ctx.font = `600 ${textSize}px ${fontFamily}`;
+                    // Account for checkmark width if enabled
+                    const checkWidth = showChecks ? ctx.measureText('✓ ').width : 0;
+                    
+                    // Measure each feature line accounting for wrapping
+                    featureLines.forEach(feature => {
+                        const wrappedLines = wrapText(ctx, feature.trim(), leftColumnWidth - checkWidth);
+                        measureHeight += wrappedLines.length * textSize * lineHeightText;
+                    });
+                }
+
+                // Check if content fits within the padded area
+                const availableHeight = height - (padding * 2); // Height minus top and bottom padding
+                if (measureHeight <= availableHeight) {
+                    // Content fits, try larger
+                    bestScale = testScale;
+                    minScale = testScale;
+                } else {
+                    // Content doesn't fit, try smaller
+                    maxScale = testScale;
+                }
+                attempts++;
+            }
+            
+            // Now render with the best scale found - recalculate with same formula as measurement
+            const finalBaseFontSize = Math.max(10, Math.min(width / 50, height / 35) * Math.sqrt((width * height) / (1280 * 800))) * bestScale;
+            const headingSize = Math.round(finalBaseFontSize * 2.5);
+            const textSize = Math.round(finalBaseFontSize);
+            const lineHeightHeading = 1.1;
+            const lineHeightText = 1.35;
+            
+            // Update debug info
+            if (debugMode) {
+                document.getElementById('debugHeadingSize').textContent = headingSize;
+                document.getElementById('debugBodySize').textContent = textSize;
+                document.getElementById('debugScale').textContent = Math.round(bestScale * 100);
+            }
+            
+            // Recalculate content with final sizes for rendering
+            ctx.textBaseline = 'top';
+            let headingLines = [];
+            if (showHeading && heading) {
+                ctx.font = `700 ${headingSize}px ${fontFamily}`;
+                headingLines = wrapText(ctx, heading, leftColumnWidth);
+            }
+            
+            ctx.font = `500 ${textSize}px ${fontFamily}`;
+            const descLines = wrapText(ctx, description, leftColumnWidth);
+            
+            let featureLines = [];
+            if (showFeatures && features) {
+                featureLines = features.split('\n').filter(f => f.trim());
+            }
+            
+            // Calculate total height for vertical centering
+            let totalHeight = 0;
+            if (showHeading && heading) {
+                totalHeight += headingLines.length * headingSize * lineHeightHeading;
+                totalHeight += padding * 0.25;
+            }
+            totalHeight += descLines.length * textSize * lineHeightText;
+            
+            if (showFeatures && features && featureLines.length > 0) {
+                totalHeight += padding * 0.25;
+                ctx.font = `600 ${textSize}px ${fontFamily}`;
+                const checkWidth = showChecks ? ctx.measureText('✓ ').width : 0;
+                featureLines.forEach(feature => {
+                    const wrappedLines = wrapText(ctx, feature.trim(), leftColumnWidth - checkWidth);
+                    totalHeight += wrappedLines.length * textSize * lineHeightText;
+                });
+            }
+            
+            // Draw debug guides first (so they appear behind content)
+            if (debugMode) {
+                ctx.save();
+                ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                
+                // Top padding line
+                ctx.beginPath();
+                ctx.moveTo(0, padding);
+                ctx.lineTo(width, padding);
+                ctx.stroke();
+                
+                // Bottom padding line
+                ctx.beginPath();
+                ctx.moveTo(0, height - padding);
+                ctx.lineTo(width, height - padding);
+                ctx.stroke();
+                
+                // Left padding line
+                ctx.beginPath();
+                ctx.moveTo(padding, 0);
+                ctx.lineTo(padding, height);
+                ctx.stroke();
+                
+                // Right padding line
+                ctx.beginPath();
+                ctx.moveTo(width - padding, 0);
+                ctx.lineTo(width - padding, height);
+                ctx.stroke();
+                
+                // Column divider if image present
+                if (uploadedImage) {
+                    ctx.strokeStyle = 'rgba(0, 0, 255, 0.3)';
+                    ctx.beginPath();
+                    ctx.moveTo(padding + leftColumnWidth, padding);
+                    ctx.lineTo(padding + leftColumnWidth, height - padding);
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(padding + leftColumnWidth + columnGap, padding);
+                    ctx.lineTo(padding + leftColumnWidth + columnGap, height - padding);
+                    ctx.stroke();
+                }
+                
+                // Draw padding values
+                ctx.restore();
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.7)';
+                ctx.font = '10px monospace';
+                ctx.fillText(`${padding}px`, 5, padding - 5);
+                ctx.fillText(`${padding}px`, padding - 30, 15);
+                ctx.restore();
+            }
+            
+            // Center content vertically within padded area
+            const availableHeight = height - (padding * 2);
+            let yPosition = padding + Math.max(0, (availableHeight - totalHeight) / 2);
+            
+            // Set text baseline for proper positioning
+            ctx.textBaseline = 'top';
+            
+            // Draw heading with letter spacing (no shadow) - only if enabled
+            if (showHeading && heading) {
+                ctx.font = `700 ${headingSize}px ${fontFamily}`;
+                ctx.fillStyle = textColor;
+                ctx.letterSpacing = uppercaseHeading ? '0.02em' : '-0.02em'; // Wider for uppercase, tighter for normal
+                headingLines.forEach(line => {
+                    ctx.fillText(line, padding, yPosition);
+                    yPosition += headingSize * lineHeightHeading;
+                });
+                
+                yPosition += padding * 0.25;
+            }
+            
+            // Draw description with medium weight (no shadow)
+            ctx.font = `500 ${textSize}px ${fontFamily}`;
+            ctx.fillStyle = textColor;
+            ctx.letterSpacing = '0'; // Normal spacing
+            descLines.forEach(line => {
+                ctx.fillText(line, padding, yPosition);
+                yPosition += textSize * lineHeightText;
+            });
+            
+            // Draw features with automatic checkmarks - only if enabled
+            if (showFeatures && features && featureLines.length > 0) {
+                yPosition += padding * 0.25;
+                
+                ctx.font = `600 ${textSize}px ${fontFamily}`;
+                featureLines.forEach(feature => {
+                    if (showChecks) {
+                        // Draw checkmark in accent color
+                        ctx.fillStyle = accentColor;
+                        ctx.fillText('✓', padding, yPosition);
+                        // Draw text in custom color
+                        ctx.fillStyle = textColor;
+                        const checkWidth = ctx.measureText('✓ ').width;
+                        // Wrap feature text to prevent overflow
+                        const wrappedFeature = wrapText(ctx, feature.trim(), leftColumnWidth - checkWidth);
+                        wrappedFeature.forEach((line, index) => {
+                            ctx.fillText(line, padding + checkWidth, yPosition + (index * textSize * lineHeightText));
+                        });
+                        yPosition += wrappedFeature.length * textSize * lineHeightText;
+                    } else {
+                        ctx.fillStyle = textColor;
+                        const wrappedFeature = wrapText(ctx, feature.trim(), leftColumnWidth);
+                        wrappedFeature.forEach((line, index) => {
+                            ctx.fillText(line, padding, yPosition + (index * textSize * lineHeightText));
+                        });
+                        yPosition += wrappedFeature.length * textSize * lineHeightText;
+                    }
+                });
+            }
+
+            // Draw uploaded image if exists
+            if (uploadedImage) {
+                // Position image in the right half with proper spacing
+                const imgX = padding + leftColumnWidth + columnGap;
+                const imgMaxWidth = rightColumnWidth;
+                const imgMaxHeight = height - padding * 2;
+
+                // Calculate scaled dimensions maintaining aspect ratio (maximize within column)
+                const scale = Math.min(imgMaxWidth / uploadedImage.width, imgMaxHeight / uploadedImage.height);
+                const imgWidth = uploadedImage.width * scale;
+                const imgHeight = uploadedImage.height * scale;
+
+                // Center image in right column
+                const imgY = (height - imgHeight) / 2;
+                const imgXCentered = imgX + (imgMaxWidth - imgWidth) / 2;
+
+                // Draw shadow
+                ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+                ctx.shadowBlur = 20;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 10;
+
+                // Draw image with rounded corners
+                ctx.save();
+                ctx.beginPath();
+                ctx.roundRect(imgXCentered, imgY, imgWidth, imgHeight, imageBorderRadius);
+                ctx.clip();
+                ctx.drawImage(uploadedImage, imgXCentered, imgY, imgWidth, imgHeight);
+                ctx.restore();
+
+                // Reset shadow
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+            }
+        }
+
+        function wrapText(context, text, maxWidth) {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                const word = words[i];
+                const width = context.measureText(currentLine + ' ' + word).width;
+                if (width < maxWidth) {
+                    currentLine += ' ' + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines;
+        }
+
+        function downloadImage() {
+            const width = document.getElementById('canvasWidth').value;
+            const height = document.getElementById('canvasHeight').value;
+            const link = document.createElement('a');
+            link.download = `thumbnail-${width}x${height}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        // Function to handle image file
+        function handleImageFile(file) {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        uploadedImage = img;
+                        document.getElementById('fileUploadContainer').classList.add('has-file');
+                        document.getElementById('uploadLabel').textContent = '✅ ' + file.name;
+                        document.getElementById('imageControls').style.display = 'block';
+                        drawCanvas();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Event listeners
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            handleImageFile(file);
+        });
+
+        // Drag and drop event handlers
+        const uploadLabel = document.getElementById('uploadLabel');
+        const fileUploadContainer = document.getElementById('fileUploadContainer');
+
+        // Prevent default drag behaviors
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadLabel.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // Highlight drop area when item is dragged over it
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadLabel.addEventListener(eventName, function() {
+                fileUploadContainer.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadLabel.addEventListener(eventName, function() {
+                fileUploadContainer.classList.remove('drag-over');
+            }, false);
+        });
+
+        // Handle dropped files
+        uploadLabel.addEventListener('drop', function(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length > 0) {
+                handleImageFile(files[0]);
+            }
+        }, false);
+
+        // Add event listeners to all inputs
+        ['canvasWidth', 'canvasHeight', 'heading', 'description', 'features', 'bgColor', 'textColor', 'accentColor', 'showHeading', 'showFeatures', 'showChecks', 'debugMode', 'uppercaseHeading', 'imageBorderRadius'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.addEventListener(element.type === 'checkbox' ? 'change' : 'input', drawCanvas);
+            }
+        });
+
+        // Update border radius display value
+        document.getElementById('imageBorderRadius').addEventListener('input', function() {
+            document.getElementById('borderRadiusValue').textContent = this.value + 'px';
+        });
+
+        // Initial draw
+        drawCanvas();
+    </script>
+</body>
+</html>
