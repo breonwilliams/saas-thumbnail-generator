@@ -908,14 +908,18 @@ Enterprise-grade security</textarea>
                         
                         <label style="margin-top: 15px; margin-bottom: 8px;">Background Style</label>
                         <div class="gradient-presets">
-                            <div class="gradient-preset" style="background: #ffffff;" onclick="setBackgroundStyle('solid', '#ffffff')"></div>
-                            <div class="gradient-preset" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="setBackgroundStyle('gradient1')"></div>
-                            <div class="gradient-preset" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" onclick="setBackgroundStyle('gradient2')"></div>
-                            <div class="gradient-preset" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" onclick="setBackgroundStyle('gradient3')"></div>
-                            <div class="gradient-preset" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" onclick="setBackgroundStyle('gradient4')"></div>
-                            <div class="gradient-preset" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" onclick="setBackgroundStyle('gradient5')"></div>
-                            <div class="gradient-preset" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);" onclick="setBackgroundStyle('gradient6')"></div>
-                            <div class="gradient-preset" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);" onclick="setBackgroundStyle('gradient7')"></div>
+                            <div class="gradient-preset" style="background: #ffffff;" onclick="setBackgroundStyle('solid', '#ffffff')" title="White"></div>
+                            <div class="gradient-preset" style="background: #f3f4f6;" onclick="setBackgroundStyle('solid', '#f3f4f6')" title="Light Gray"></div>
+                            <div class="gradient-preset" style="background: #000000;" onclick="setBackgroundStyle('solid', '#000000')" title="Black"></div>
+                            <div class="gradient-preset" style="background: #1e40af;" onclick="setBackgroundStyle('solid', '#1e40af')" title="Blue"></div>
+                            <div class="gradient-preset" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="setBackgroundStyle('gradient1')" title="Purple Gradient"></div>
+                            <div class="gradient-preset" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" onclick="setBackgroundStyle('gradient2')" title="Pink Gradient"></div>
+                            <div class="gradient-preset" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" onclick="setBackgroundStyle('gradient3')" title="Cyan Gradient"></div>
+                            <div class="gradient-preset" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" onclick="setBackgroundStyle('gradient4')" title="Green Gradient"></div>
+                            <div class="gradient-preset" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" onclick="setBackgroundStyle('gradient5')" title="Sunset Gradient"></div>
+                            <div class="gradient-preset" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);" onclick="setBackgroundStyle('gradient6')" title="Ocean Gradient"></div>
+                            <div class="gradient-preset" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);" onclick="setBackgroundStyle('gradient7')" title="Pastel Gradient"></div>
+                            <div class="gradient-preset" style="background: #ef4444;" onclick="setBackgroundStyle('solid', '#ef4444')" title="Red"></div>
                         </div>
                     </div>
 
@@ -1179,28 +1183,40 @@ Enterprise-grade security</textarea>
                 textColor: '#ffffff',
                 accentColor: '#ffd93d',
                 backgroundStyle: 'gradient1',
-                uppercaseHeading: true
+                uppercaseHeading: true,
+                showHeading: true,
+                showFeatures: true,
+                showChecks: true
             },
             minimal: {
                 bgColor: '#f8f9fa',
                 textColor: '#212529',
                 accentColor: '#0066cc',
                 backgroundStyle: 'solid',
-                uppercaseHeading: false
+                uppercaseHeading: false,
+                showHeading: true,
+                showFeatures: true,
+                showChecks: false
             },
             bold: {
                 bgColor: '#000000',
                 textColor: '#ffffff',
                 accentColor: '#ffcc00',
                 backgroundStyle: 'solid',
-                uppercaseHeading: true
+                uppercaseHeading: true,
+                showHeading: true,
+                showFeatures: true,
+                showChecks: true
             },
             vibrant: {
                 bgColor: '#f093fb',
                 textColor: '#ffffff',
                 accentColor: '#4facfe',
                 backgroundStyle: 'gradient2',
-                uppercaseHeading: false
+                uppercaseHeading: false,
+                showHeading: true,
+                showFeatures: true,
+                showChecks: true
             }
         };
 
@@ -1351,15 +1367,24 @@ Enterprise-grade security</textarea>
         function setBackgroundStyle(style, color) {
             backgroundStyle = style;
             if (style === 'solid') {
-                document.getElementById('bgColor').value = color || '#ffffff';
+                // When switching to solid, update the background color input
+                if (color) {
+                    document.getElementById('bgColor').value = color;
+                }
                 currentGradient = null;
+                updateColorPreviews();
             } else if (gradients[style]) {
                 currentGradient = gradients[style];
+                // Optionally set bgColor to first gradient color for consistency
+                document.getElementById('bgColor').value = currentGradient[0];
+                updateColorPreviews();
             }
             
             // Update active gradient preset
             document.querySelectorAll('.gradient-preset').forEach(preset => preset.classList.remove('active'));
-            event.target.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
             
             saveToHistory();
             drawCanvas();
@@ -1369,15 +1394,38 @@ Enterprise-grade security</textarea>
         function applyTemplate(templateName) {
             const template = templates[templateName];
             if (template) {
+                // Update color inputs
                 document.getElementById('bgColor').value = template.bgColor;
                 document.getElementById('textColor').value = template.textColor;
                 document.getElementById('accentColor').value = template.accentColor;
-                document.getElementById('uppercaseHeading').checked = template.uppercaseHeading;
                 
+                // Update checkboxes
+                document.getElementById('uppercaseHeading').checked = template.uppercaseHeading;
+                document.getElementById('showHeading').checked = template.showHeading !== undefined ? template.showHeading : true;
+                document.getElementById('showFeatures').checked = template.showFeatures !== undefined ? template.showFeatures : true;
+                document.getElementById('showChecks').checked = template.showChecks !== undefined ? template.showChecks : true;
+                
+                // Handle background style
                 if (template.backgroundStyle) {
                     backgroundStyle = template.backgroundStyle;
-                    if (gradients[template.backgroundStyle]) {
+                    if (template.backgroundStyle === 'solid') {
+                        currentGradient = null;
+                        // Update gradient preset visuals - remove active from all
+                        document.querySelectorAll('.gradient-preset').forEach(preset => preset.classList.remove('active'));
+                        // Set first preset (solid white) as active
+                        const solidPreset = document.querySelector('.gradient-preset');
+                        if (solidPreset) solidPreset.classList.add('active');
+                    } else if (gradients[template.backgroundStyle]) {
                         currentGradient = gradients[template.backgroundStyle];
+                        // Update gradient preset visuals
+                        document.querySelectorAll('.gradient-preset').forEach(preset => preset.classList.remove('active'));
+                        // Find and activate the matching gradient preset
+                        const presets = document.querySelectorAll('.gradient-preset');
+                        const gradientKeys = Object.keys(gradients);
+                        const index = gradientKeys.indexOf(template.backgroundStyle);
+                        if (index >= 0 && presets[index + 1]) { // +1 because first is solid
+                            presets[index + 1].classList.add('active');
+                        }
                     }
                 }
                 
@@ -1471,7 +1519,7 @@ Enterprise-grade security</textarea>
                 : 0;
 
             // Clear and set background
-            if (currentGradient) {
+            if (backgroundStyle !== 'solid' && currentGradient) {
                 const gradient = ctx.createLinearGradient(0, 0, width, height);
                 gradient.addColorStop(0, currentGradient[0]);
                 gradient.addColorStop(1, currentGradient[1]);
@@ -2096,6 +2144,13 @@ Enterprise-grade security</textarea>
         // Color input change handlers
         ['bgColor', 'textColor', 'accentColor'].forEach(id => {
             document.getElementById(id).addEventListener('input', function() {
+                // If user manually changes background color, switch to solid mode
+                if (id === 'bgColor') {
+                    backgroundStyle = 'solid';
+                    currentGradient = null;
+                    // Remove active state from all gradient presets
+                    document.querySelectorAll('.gradient-preset').forEach(preset => preset.classList.remove('active'));
+                }
                 updateColorPreviews();
                 debouncedRender();
             });
